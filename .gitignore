@@ -1,0 +1,12 @@
+.env
+secrets/*
+!secrets/.gitkeep
+logs/*
+__pycache__/
+.pytest_cache/
+.terraform/
+*.tfstate
+*.tfstate.*
+dbt_weather/target/
+dbt_weather/logs/
+dbt_weather/dbt_packages/
