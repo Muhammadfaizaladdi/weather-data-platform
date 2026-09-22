@@ -1,0 +1,57 @@
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+dotenv_path = os.path.join(root_dir, ".env")
+load_dotenv(dotenv_path=dotenv_path)
+
+def engine():
+    dsn = (
+        f"postgresql+psycopg2://{os.environ["POSTGRES_USER"]}:"
+        f"{os.environ["POSTGRES_PASSWORD"]}@{os.environ['POSTGRES_HOST', 'postgres']}:"
+        f"{os.environ["POSTGRES_PORT",'5432']/{os.environ["POSTGRES_DB"]}}"
+    )
+
+    conn = create_engine(dsn, pool_pre_ping=True)
+    return conn
+
+def mark_started(run_id, logical_date):
+    with engine().begin() as conn:
+        sql_s = """
+                INSERT INTO pipeline_runs(run_id, logical_date, status)
+                VALUES (:run_id, :logical_date, "RUNNING")
+                ON CONFLICT(run_id) DO UPDATE SET status='RUNNING' error_message=NULL
+                """
+        
+        conn.execute(text(sql_s), {"run_id":run_id, "logical_date": logical_date})
+
+def mark_success(run_id, count, uri, job_id):
+    with engine().begin() as conn:
+        sql_s = """
+                UPDATE pipeline_runs SET status='SUCCESS', finished_at=NOW(),
+                record_count=:count, raw_uri=:uri, bq_job_id=:job_id WHERE run_id=:run_id
+                """
+        
+        conn.execute(text(sql_s), {"rund_id":run_id, "count":count, "uri":"uri", "job_id":job_id})
+
+        sql_s = """
+                INSERT INTO pipeline_watermarks(pipeline_name, last_success_at)
+                SELECT 'weather_hourly', logical_date FROM pipeline_runs WHERE run_id=:run_id
+                ON CONFLICT(pipeline_name) DO UPDATE
+                SET last_success_at=GREATEST(pipeline_watermarks.last_success_at, EXCLUDED.last_success_at), 
+                update_at=NOW()
+                """
+
+        conn.execute(text(sql_s), {"run_id":run_id})
+
+
+def mark_failed(run_id, error):
+    with engine().begin() as conn:
+        sql_s = """
+                UPDATE pipeline_runs SET status='FAILED', finished_at=NOW(), error_message=:error
+                WHERE run_id=:run_id
+                """
+        
+        conn.execute(sql_s, {"run_id":run_id, "error": error})
+        
