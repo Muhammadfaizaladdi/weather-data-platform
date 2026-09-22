@@ -1,0 +1,11 @@
+apache-airflow-providers-google>=12,<13
+google-cloud-storage>=2.18,<3
+google-cloud-bigquery>=3.25,<4
+pandas
+pyarrow>=17,<20
+requests>=2.32,<3
+psycopg2-binary>=2.9,<3
+pydantic>=2.9,<3
+sqlalchemy>=2.0,<3
+dbt-bigquery>=1.8,<2
+pytest>=8,<9
