@@ -1,0 +1,11 @@
+version: 2
+sources:
+  - name: weather_raw
+    database: "{{ env_var('PROJECT_ID') }}"
+    schema: weather_raw
+    tables:
+      - name: weather_hourly
+        loaded_at_field: ingested_at
+        freshness:
+          warn_after: {count: 3, period: hour}
+          error_after: {count: 6, period: hour}

@@ -1,0 +1,11 @@
+weather_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('PROJECT_ID') }}"
+      dataset: weather
+      location: "{{ env_var('BQ_LOCATION') }}"
+      threads: 4
+      priority: interactive

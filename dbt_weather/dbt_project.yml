@@ -1,0 +1,11 @@
+name: weather_analytics
+version: 1.0.0
+config_version: 2
+profile: weather_analytics
+model_paths: ['models']
+
+models:
+  weather_analytics:
+    staging: {+schema: staging, +materialized: view}
+    intermediate: {+schema: intermediate, +materialized: view}
+    analytics: {+schema: analytics, +materialized: table}
