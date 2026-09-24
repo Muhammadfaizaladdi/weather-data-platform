@@ -2,11 +2,11 @@ import hashlib
 from google.api_core.exceptions import Conflict
 from google.cloud import bigquery
 
-def load_raw(project_id, dataset_id, table_id, gcs_uri):
+def load_raw(project_id, dataset_id, table_id, gcs_uri, run_id):
     client = bigquery.Client(project=project_id)
     table = f"{project_id}.{dataset_id}.{table_id}"
-    # suffix = hashlib.sha256(run_id.encode()).hexdigest()[:20]
-    # job_id = f"weather_raw_{suffix}"
+    suffix = hashlib.sha256(run_id.encode()).hexdigest()[:20]
+    job_id = f"weather_raw_{suffix}"
     config = bigquery.LoadJobConfig(
         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
         write_disposition=bigquery.WriteDisposition.WRITE_APPEND,

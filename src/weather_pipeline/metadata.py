@@ -6,12 +6,17 @@ root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 dotenv_path = os.path.join(root_dir, ".env")
 load_dotenv(dotenv_path=dotenv_path)
 
+print(os.environ)
+
 def engine():
-    dsn = (
-        f"postgresql+psycopg2://{os.environ["POSTGRES_USER"]}:"
-        f"{os.environ["POSTGRES_PASSWORD"]}@{os.environ['POSTGRES_HOST', 'postgres']}:"
-        f"{os.environ["POSTGRES_PORT",'5432']/{os.environ["POSTGRES_DB"]}}"
-    )
+    # Gunakan .get() untuk handle default value dan hindari bentrok kutip di f-string
+    user = os.environ.get('POSTGRES_USER')
+    password = os.environ.get('POSTGRES_PASSWORD')
+    host = os.environ.get('POSTGRES_HOST', 'postgres')
+    port = os.environ.get('POSTGRES_PORT', '5432')
+    db = os.environ.get('POSTGRES_DB')
+
+    dsn = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
 
     conn = create_engine(dsn, pool_pre_ping=True)
     return conn
