@@ -25,8 +25,8 @@ def mark_started(run_id, logical_date):
     with engine().begin() as conn:
         sql_s = """
                 INSERT INTO pipeline_runs(run_id, logical_date, status)
-                VALUES (:run_id, :logical_date, "RUNNING")
-                ON CONFLICT(run_id) DO UPDATE SET status='RUNNING' error_message=NULL
+                VALUES (:run_id, :logical_date, 'RUNNING')
+                ON CONFLICT(run_id) DO UPDATE SET status='RUNNING', error_message=NULL
                 """
         
         conn.execute(text(sql_s), {"run_id":run_id, "logical_date": logical_date})
@@ -38,7 +38,7 @@ def mark_success(run_id, count, uri, job_id):
                 record_count=:count, raw_uri=:uri, bq_job_id=:job_id WHERE run_id=:run_id
                 """
         
-        conn.execute(text(sql_s), {"rund_id":run_id, "count":count, "uri":"uri", "job_id":job_id})
+        conn.execute(text(sql_s), {"run_id":run_id, "count":count, "uri":uri, "job_id":job_id})
 
         sql_s = """
                 INSERT INTO pipeline_watermarks(pipeline_name, last_success_at)
@@ -52,11 +52,21 @@ def mark_success(run_id, count, uri, job_id):
 
 
 def mark_failed(run_id, error):
+    sql_s = text("""
+        UPDATE pipeline_runs 
+        SET status = 'FAILED', finished_at = NOW(), error_message = :error
+        WHERE run_id = :run_id
+    """)
     with engine().begin() as conn:
-        sql_s = """
-                UPDATE pipeline_runs SET status='FAILED', finished_at=NOW(), error_message=:error
-                WHERE run_id=:run_id
-                """
-        
-        conn.execute(sql_s, {"run_id":run_id, "error": error})
-        
+        conn.execute(sql_s, {"run_id": run_id, "error": error})
+
+# run_id = "123"
+# logical_date = "'2026-09-24T17:00:00+00:00'"
+# count = 10
+# uri = "https:///"
+# job_id = "1234567"
+# error = "hahaha"
+
+# mark_started(run_id, logical_date)
+# mark_failed(run_id, error)
+# mark_success(run_id, count,uri,job_id)
